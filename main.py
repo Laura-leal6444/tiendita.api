@@ -1,12 +1,16 @@
 ### Autora: Laura Leal, 7 de octubre de 2026, tiendita; modificar inventario de productos, gestión de precios
 
+# Importamos FastAPI para crear la API y CORS para permitir que el cliente (index.html) la consuma
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+# Importamos asyncio para las funciones async con await (esperas simuladas)
 import asyncio 
 
+# Crea la aplicacion de FastAPI (la que ejecuta Uvicorn)
 app = FastAPI()
 
 
+# CORS: permite que el cliente en otro servidor (index.html) le hable a esta API sin que el navegador lo bloquee
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,26 +20,32 @@ app.add_middleware(
 )
 
 
+# Inventario de la tiendita: lista en memoria que funciona como base de datos temporal
 inventario = [
     {"id": 1, "nombre": "Coca-Cola", "precio": 20, "cantidad": 25},
     {"id": 2, "nombre": "Papas", "precio": 15, "cantidad": 40},
     {"id": 3, "nombre": "Café", "precio": 18, "cantidad": 15}
 ]
 
+# GET inicio: mensaje de bienvenida de la API
 @app.get("/")
 def home():
     return {"Message": "Hola bienvenido"}
 
+# GET consulta los productos de mi inventario (async con await)
 @app.get("/productos")
 async def getProductos():
     await asyncio.sleep(1)  # simula la consulta a la base de datos, mientras espera el servidor atiende otras peticiones
     return inventario
 
+# POST agrega un producto nuevo a mi inventario (async con await)
 @app.post("/productos")
 async def addProducto(producto: dict):
 
     await asyncio.sleep(1)  # simula guardar en la base de datos (se espera antes de calcular el id para que no se repita)
+# Calcula el id del producto nuevo
     nuevo_id = len(inventario) + 1
+# Arma el producto con los datos que mando el cliente
     nuevo_producto = {
         "id": nuevo_id,    
         "nombre": producto["nombre"],
@@ -43,13 +53,16 @@ async def addProducto(producto: dict):
         "cantidad": producto["cantidad"]
     }
 
+# Guarda el producto en el inventario
     inventario.append(nuevo_producto)
 
     return inventario
 
+# DELETE borra producto de mi inventario (async sin await)
 @app.delete("/productos/{producto_id}")
 async def deleteProducto(producto_id: int):
     # es async pero no lleva await porque aqui no hay nada que esperar, solo se busca en una lista en memoria
+# Busca el producto por su id y lo elimina si existe
     for producto in inventario:
         if producto["id"] == producto_id:
             inventario.remove(producto)
@@ -57,7 +70,7 @@ async def deleteProducto(producto_id: int):
     return {"Message": "No fue encontrado el producto"}
 
 
-# Prueba asyncio
+# Prueba asyncio 5 segundos (espera con await y luego responde)
 @app.get("/prueba-asyncio")
 async def pruebaAsyncio():
     await asyncio.sleep(5)

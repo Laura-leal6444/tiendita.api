@@ -1,5 +1,5 @@
 $kind: http-request
-description: ""
+description: "DELETE borra producto de mi inventario (async sin await, responde al instante)"
 url: http://127.0.0.1:8000/productos/1
 method: DELETE
 order: 1791590150662

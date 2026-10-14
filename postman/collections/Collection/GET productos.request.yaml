@@ -1,5 +1,5 @@
 $kind: http-request
-description: ""
+description: "GET consulta los productos de mi inventario (async con await, tarda cerca de 1 s)"
 url: http://127.0.0.1:8000/productos
 method: GET
 order: 1791590148662

@@ -1,5 +1,5 @@
 $kind: http-request
-description: ""
+description: "POST agrega un producto nuevo a mi inventario (async con await, tarda cerca de 1 s)"
 url: http://127.0.0.1:8000/productos
 method: POST
 body:
