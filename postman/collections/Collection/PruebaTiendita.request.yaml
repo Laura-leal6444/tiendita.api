@@ -1,5 +1,5 @@
 $kind: http-request
-description: ""
+description: "GET inicio: mensaje de bienvenida de la API"
 url: http://127.0.0.1:8000/
 method: GET
 order: 1791590147662
