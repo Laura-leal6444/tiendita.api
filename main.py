@@ -5,9 +5,44 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # Importamos asyncio para las funciones async con await (esperas simuladas)
 import asyncio 
+# Importamos time para medir los segundos, deque para guardar los tiempos de las peticiones y JSONResponse para responder el error 429
+import time
+from collections import deque
+from fastapi.responses import JSONResponse
 
 # Crea la aplicacion de FastAPI (la que ejecuta Uvicorn)
 app = FastAPI()
+
+
+# Limite de peticiones: maximo 5 por segundo (se define antes que CORS para que CORS quede por fuera y tambien cubra el error 429)
+LIMITE_PETICIONES = 5
+VENTANA_SEGUNDOS = 1
+
+# Guarda el momento en que llego cada una de las ultimas peticiones aceptadas
+tiempos_peticiones = deque()
+# asyncio.Lock: hace que las peticiones revisen y modifiquen la lista de una en una, sin pisarse
+candado = asyncio.Lock()
+
+# Middleware: se ejecuta en cada peticion antes de llegar al endpoint
+@app.middleware("http")
+async def limitar_peticiones(request, call_next):
+    # El candado solo protege la revision, no la peticion completa, para que las peticiones lentas no se bloqueen entre si
+    async with candado:
+        ahora = time.monotonic()
+        # Quita de la lista las peticiones que ya pasaron hace 1 segundo o mas, esas ya no cuentan
+        while tiempos_peticiones and ahora - tiempos_peticiones[0] >= VENTANA_SEGUNDOS:
+            tiempos_peticiones.popleft()
+        # Si ya hubo 5 peticiones en el ultimo segundo, rechaza esta con el error 429 (Too Many Requests)
+        if len(tiempos_peticiones) >= LIMITE_PETICIONES:
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Demasiadas peticiones, maximo 5 por segundo. Intenta de nuevo en un momento."},
+                headers={"Retry-After": "1"}
+            )
+        # Si todavia hay espacio, registra esta peticion
+        tiempos_peticiones.append(ahora)
+    # Deja pasar la peticion hacia su endpoint y regresa la respuesta
+    return await call_next(request)
 
 
 # CORS: permite que el cliente en otro servidor (index.html) le hable a esta API sin que el navegador lo bloquee
