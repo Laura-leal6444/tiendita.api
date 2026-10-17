@@ -59,7 +59,9 @@ app.add_middleware(
 inventario = [
     {"id": 1, "nombre": "Coca-Cola", "precio": 20, "cantidad": 25},
     {"id": 2, "nombre": "Papas", "precio": 15, "cantidad": 40},
-    {"id": 3, "nombre": "Café", "precio": 18, "cantidad": 15}
+    {"id": 3, "nombre": "Café", "precio": 18, "cantidad": 15},
+    {"id": 4, "nombre": "Charcutería", "precio": 120, "cantidad": 10},
+    {"id": 5, "nombre": "Vino rosado", "precio": 180, "cantidad": 12}
 ]
 
 # GET inicio: mensaje de bienvenida de la API

@@ -1,0 +1,5 @@
+$kind: http-request
+description: "POST comprar Vino rosado: compra 1 unidad de Vino rosado (id 5) y descuenta el inventario"
+url: http://127.0.0.1:8000/productos/5/comprar
+method: POST
+order: 1791590153662
