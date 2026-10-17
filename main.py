@@ -1,7 +1,7 @@
 ### Autora: Laura Leal, 7 de octubre de 2026, tiendita; modificar inventario de productos, gestión de precios
 
-# Importamos FastAPI para crear la API y CORS para permitir que el cliente (index.html) la consuma
-from fastapi import FastAPI
+# Importamos FastAPI para crear la API, HTTPException para responder errores como 404 o 409 y CORS para permitir que el cliente (index.html) la consuma
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 # Importamos asyncio para las funciones async con await (esperas simuladas)
 import asyncio 
@@ -103,6 +103,28 @@ async def deleteProducto(producto_id: int):
             inventario.remove(producto)
             return {"Message": "El producto fue eliminado"}
     return {"Message": "No fue encontrado el producto"}
+
+
+# Candado para que las compras se procesen de una en una y el stock del inventario no se descuadre
+candado_compra = asyncio.Lock()
+
+# POST comprar: compra 1 unidad de un producto y descuenta la cantidad del inventario (async con await)
+@app.post("/productos/{producto_id}/comprar")
+async def comprarProducto(producto_id: int):
+    # async with candado: si llegan muchas compras al mismo tiempo, pasan una por una
+    async with candado_compra:
+        # Busca el producto por su id
+        for producto in inventario:
+            if producto["id"] == producto_id:
+                # Si ya no hay unidades, responde el error 409 (Conflict)
+                if producto["cantidad"] <= 0:
+                    raise HTTPException(status_code=409, detail="Producto agotado")
+                await asyncio.sleep(0.2)  # simula el cobro; sin el candado dos clientes podrian comprar la ultima unidad
+                # Descuenta 1 unidad del inventario
+                producto["cantidad"] -= 1
+                return {"Message": "Compra realizada", "producto": producto["nombre"], "cantidad_restante": producto["cantidad"]}
+    # Si el ciclo termino sin encontrarlo, responde el error 404 (Not Found)
+    raise HTTPException(status_code=404, detail="Producto no encontrado")
 
 
 # Prueba asyncio 5 segundos (espera con await y luego responde)

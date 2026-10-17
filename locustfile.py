@@ -11,9 +11,9 @@ class ClienteTiendita(HttpUser):
     # Cada cliente espera entre 0.5 y 1.5 segundos despues de cada tarea, como una persona real
     wait_time = between(0.5, 1.5)
 
-    # Funcion que revisa la respuesta: 200 y 201 son exito; el 429 se marca como fallo para ver cuando actua el limite de 5 por segundo
+    # Funcion que revisa la respuesta: 200, 201 y 409 (producto agotado) son normales; el 429 se marca como fallo para ver cuando actua el limite de 5 por segundo
     def revisar(self, respuesta):
-        if respuesta.status_code in (200, 201):
+        if respuesta.status_code in (200, 201, 409):
             respuesta.success()
         elif respuesta.status_code == 429:
             respuesta.failure("429 Demasiadas peticiones (limite de 5 por segundo)")
@@ -44,4 +44,11 @@ class ClienteTiendita(HttpUser):
     def eliminar_producto(self):
         id_producto = random.randint(4, 30)
         with self.client.delete(f"/productos/{id_producto}", name="/productos/{id}", catch_response=True) as respuesta:
+            self.revisar(respuesta)
+
+    # POST comprar: compra 1 unidad de un producto al azar y descuenta el inventario; cuando se agota responde 409 (peso 2)
+    @task(2)
+    def comprar_producto(self):
+        id_producto = random.randint(1, 3)
+        with self.client.post(f"/productos/{id_producto}/comprar", name="/productos/{id}/comprar", catch_response=True) as respuesta:
             self.revisar(respuesta)

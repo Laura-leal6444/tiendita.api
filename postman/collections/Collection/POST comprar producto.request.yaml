@@ -1,0 +1,5 @@
+$kind: http-request
+description: "POST comprar: compra 1 unidad de un producto y descuenta la cantidad del inventario (async con await y candado, tarda cerca de 0.2 s)"
+url: http://127.0.0.1:8000/productos/2/comprar
+method: POST
+order: 1791590151662
