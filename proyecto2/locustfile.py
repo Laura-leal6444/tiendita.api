@@ -39,6 +39,14 @@ class UsuarioTienditaCompleto(HttpUser):
         self.client.get("/productos/3", name="/productos/3 (stock)")
 
 
+# Al iniciar cada prueba reinicia el conteo, para que el resumen solo cuente la prueba actual
+@events.test_start.add_listener
+def reiniciar_conteo(environment, **kwargs):
+    conteo_compras["200"] = 0
+    conteo_compras["400"] = 0
+    conteo_compras["otros"] = 0
+
+
 # Al terminar la prueba imprime en la terminal el resumen de las compras
 @events.test_stop.add_listener
 def resumen_compras(environment, **kwargs):
